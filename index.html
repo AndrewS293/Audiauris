@@ -1,49 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AURALUX — Audio Visualizer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AURALUX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── BASE ── */
     :root {
-      --bg: #080810;
-      --surface: #10101c;
+      --bg: #07070f;
+      --surface: #0e0e1c;
       --border: rgba(255,255,255,0.06);
-      --text: #e8e8f0;
-      --muted: #5a5a7a;
-      --accent: #a78bfa;
-      --accent2: #f472b6;
-      --glow: rgba(167,139,250,0.3);
+      --text: #e4e4f0;
+      --muted: #52527a;
+      --ui-opacity: 1;
+      --brightness: 1;
     }
 
-    /* ── THEMES ── */
-    [data-theme="aurora"] {
-      --c1: #00f5c8; --c2: #00aaff; --c3: #8b5cf6; --c4: #f472b6;
-      --glow-clr: rgba(0,245,200,0.25); --name: "AURORA";
-    }
-    [data-theme="ember"] {
-      --c1: #ff6b00; --c2: #ff3366; --c3: #ffcc00; --c4: #ff8800;
-      --glow-clr: rgba(255,107,0,0.3); --name: "EMBER";
-    }
-    [data-theme="glacier"] {
-      --c1: #e0f7fa; --c2: #80deea; --c3: #26c6da; --c4: #00838f;
-      --glow-clr: rgba(224,247,250,0.2); --name: "GLACIER";
-    }
-    [data-theme="venom"] {
-      --c1: #39ff14; --c2: #00ff88; --c3: #aaff00; --c4: #00cc44;
-      --glow-clr: rgba(57,255,20,0.25); --name: "VENOM";
-    }
-    [data-theme="sakura"] {
-      --c1: #ff9ec4; --c2: #ffb3d1; --c3: #ff6fa8; --c4: #ffd6e7;
-      --glow-clr: rgba(255,158,196,0.3); --name: "SAKURA";
-    }
-    [data-theme="void"] {
-      --c1: #6600ff; --c2: #0044ff; --c3: #aa00ff; --c4: #3300cc;
-      --glow-clr: rgba(102,0,255,0.35); --name: "VOID";
-    }
+    /* ══ THEMES ══ */
+    [data-theme="aurora"]   { --c1:#00f5c8; --c2:#00aaff; --c3:#8b5cf6; --c4:#f472b6; --glow:rgba(0,245,200,0.22); }
+    [data-theme="ember"]    { --c1:#ff6b00; --c2:#ff3366; --c3:#ffcc00; --c4:#ff8800; --glow:rgba(255,107,0,0.28); }
+    [data-theme="glacier"]  { --c1:#e0f7fa; --c2:#80deea; --c3:#26c6da; --c4:#00838f; --glow:rgba(224,247,250,0.18); }
+    [data-theme="venom"]    { --c1:#39ff14; --c2:#00ff88; --c3:#aaff00; --c4:#00cc44; --glow:rgba(57,255,20,0.22); }
+    [data-theme="sakura"]   { --c1:#ff9ec4; --c2:#ffb3d1; --c3:#ff6fa8; --c4:#ffd6e7; --glow:rgba(255,158,196,0.28); }
+    [data-theme="void"]     { --c1:#6600ff; --c2:#0044ff; --c3:#aa00ff; --c4:#3300cc; --glow:rgba(102,0,255,0.32); }
+    [data-theme="solar"]    { --c1:#ffe066; --c2:#ffaa00; --c3:#ff6600; --c4:#ff0044; --glow:rgba(255,224,102,0.25); }
+    [data-theme="abyss"]    { --c1:#00ffee; --c2:#0077ff; --c3:#003399; --c4:#001155; --glow:rgba(0,255,238,0.2); }
+    [data-theme="neon"]     { --c1:#ff00cc; --c2:#ff6600; --c3:#ffff00; --c4:#00ffcc; --glow:rgba(255,0,204,0.25); }
+    [data-theme="copper"]   { --c1:#ffb347; --c2:#d4702a; --c3:#8b3a00; --c4:#e8956d; --glow:rgba(255,179,71,0.22); }
 
     html, body {
       width: 100%; height: 100%;
@@ -51,344 +37,209 @@
       color: var(--text);
       font-family: 'DM Mono', monospace;
       overflow: hidden;
-      user-select: none;
     }
 
-    /* ── LAYOUT ── */
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    /* Brightness overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #000;
+      opacity: calc(1 - var(--brightness));
+      pointer-events: none;
+      z-index: 9998;
+      transition: opacity 0.3s;
     }
+
+    #app { display: flex; flex-direction: column; height: 100vh; }
 
     /* ── HEADER ── */
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 28px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px 12px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
-      position: relative;
-      z-index: 10;
+      opacity: var(--ui-opacity);
+      transition: opacity 0.5s ease;
+      position: relative; z-index: 10;
     }
 
     .logo {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.12em;
-      background: linear-gradient(135deg, var(--c1, #a78bfa), var(--c3, #f472b6));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 1.9rem; letter-spacing: 0.14em;
+      background: linear-gradient(135deg, var(--c1), var(--c3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
-      transition: all 0.5s ease;
+      transition: background 0.5s;
     }
+
+    .header-right { display: flex; align-items: center; gap: 16px; }
 
     .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      padding: 6px 14px;
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      transition: all 0.3s ease;
-    }
-
-    .status-pill.active {
-      color: var(--c1, #a78bfa);
-      border-color: var(--c1, #a78bfa);
-      box-shadow: 0 0 12px var(--glow-clr, rgba(167,139,250,0.2));
-    }
-
-    .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--muted);
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.65rem; letter-spacing: 0.14em; color: var(--muted);
+      padding: 5px 13px; border: 1px solid var(--border); border-radius: 100px;
       transition: all 0.3s;
     }
-    .status-pill.active .dot {
-      background: var(--c1, #a78bfa);
-      box-shadow: 0 0 6px var(--c1, #a78bfa);
-      animation: pulse 1.4s ease-in-out infinite;
-    }
+    .status-pill.active { color: var(--c1); border-color: var(--c1); box-shadow: 0 0 10px var(--glow); }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
+    .status-pill.active .dot { background: var(--c1); box-shadow: 0 0 5px var(--c1); animation: blink 1.4s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
+    .level-wrap { display: flex; align-items: center; gap: 7px; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; }
+    .level-bar { width: 70px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .level-fill { height: 100%; background: linear-gradient(90deg, var(--c1), var(--c3)); width: 0%; transition: width 0.08s; }
 
-    /* ── CANVAS AREA ── */
-    #canvas-wrap {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
+    /* ── CANVAS ── */
+    #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-    canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ── IDLE SCREEN ── */
+    /* ── IDLE ── */
     #idle {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      transition: opacity 0.6s ease;
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      transition: opacity 0.6s;
     }
-
     #idle.hidden { opacity: 0; pointer-events: none; }
-
     .idle-ring {
-      width: 120px; height: 120px;
-      border-radius: 50%;
+      width: 100px; height: 100px; border-radius: 50%;
       border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
     .idle-ring::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, var(--c1, #a78bfa), var(--c3, #f472b6), transparent);
-      animation: spin 4s linear infinite;
-      opacity: 0.4;
+      content: ''; position: absolute; inset: -1px; border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--c1), var(--c3), transparent);
+      animation: spin 5s linear infinite; opacity: 0.35;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .idle-icon { font-size: 2rem; }
+    .idle-text { text-align: center; }
+    .idle-text h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.15em; margin-bottom: 5px; }
+    .idle-text p { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.07em; max-width: 260px; line-height: 1.8; }
 
-    .idle-icon {
-      font-size: 2.2rem;
-      filter: grayscale(0.5);
-    }
-
-    .idle-text {
-      text-align: center;
-    }
-    .idle-text h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.5rem;
-      letter-spacing: 0.15em;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-    .idle-text p {
-      font-size: 0.72rem;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      max-width: 280px;
-      line-height: 1.7;
-    }
-
-    /* ── CONTROLS ── */
+    /* ── FOOTER ── */
     footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 28px;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-      gap: 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px; border-top: 1px solid var(--border);
+      flex-shrink: 0; gap: 12px;
+      opacity: var(--ui-opacity);
+      transition: opacity 0.5s ease;
     }
 
-    .btn-group { display: flex; gap: 10px; align-items: center; }
+    .btn-group { display: flex; gap: 8px; align-items: center; }
 
     .btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      padding: 8px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      transition: all 0.25s ease;
-      white-space: nowrap;
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em;
+      padding: 7px 16px; border-radius: 5px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      transition: all 0.22s; white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--c1); color: var(--c1); box-shadow: 0 0 8px var(--glow); }
+    .btn.primary { background: var(--c1); color: #07070f; border-color: var(--c1); font-weight: 500; }
+    .btn.primary:hover { filter: brightness(1.12); box-shadow: 0 0 14px var(--glow); color: #07070f; }
+    .btn.danger { border-color: rgba(255,60,60,0.3); color: rgba(255,100,100,0.65); }
+    .btn.danger:hover { border-color: #ff4444; color: #ff4444; }
+    .btn.icon-btn { padding: 7px 10px; font-size: 0.9rem; }
+
+    /* ── SLIDERS PANEL ── */
+    .sliders { display: flex; align-items: center; gap: 16px; }
+    .slider-wrap { display: flex; align-items: center; gap: 7px; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.09em; }
+    input[type=range] {
+      -webkit-appearance: none; width: 70px; height: 3px;
+      background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 11px; height: 11px;
+      border-radius: 50%; background: var(--c1); border: none;
+      box-shadow: 0 0 6px var(--glow); transition: background 0.3s;
     }
 
-    .btn:hover {
-      border-color: var(--c1, #a78bfa);
-      color: var(--c1, #a78bfa);
-      box-shadow: 0 0 10px var(--glow-clr, rgba(167,139,250,0.15));
-    }
-
-    .btn.primary {
-      background: var(--c1, #a78bfa);
-      color: #08080f;
-      border-color: var(--c1, #a78bfa);
-      font-weight: 500;
-    }
-    .btn.primary:hover {
-      filter: brightness(1.15);
-      color: #08080f;
-      box-shadow: 0 0 16px var(--glow-clr, rgba(167,139,250,0.4));
-    }
-    .btn.danger { border-color: rgba(255,60,60,0.3); color: rgba(255,100,100,0.7); }
-    .btn.danger:hover { border-color: #ff4444; color: #ff4444; box-shadow: 0 0 10px rgba(255,68,68,0.2); }
-
-    /* ── MODE SELECTOR ── */
-    .mode-tabs {
-      display: flex;
-      gap: 6px;
-    }
-
+    /* ── MODE TABS ── */
+    .mode-tabs { display: flex; gap: 5px; }
     .mode-tab {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
+      font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+      padding: 5px 10px; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--muted);
       transition: all 0.2s;
     }
-    .mode-tab.active {
-      border-color: var(--c1, #a78bfa);
-      color: var(--c1, #a78bfa);
-      background: rgba(255,255,255,0.03);
-    }
+    .mode-tab.active { border-color: var(--c1); color: var(--c1); background: rgba(255,255,255,0.025); }
 
     /* ── THEME SWATCHES ── */
-    .theme-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
+    .theme-row { display: flex; gap: 6px; align-items: center; }
     .swatch {
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-      position: relative;
+      width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s;
     }
-    .swatch.active { border-color: white; transform: scale(1.2); }
-    .swatch[data-theme="aurora"] { background: linear-gradient(135deg, #00f5c8, #8b5cf6); }
-    .swatch[data-theme="ember"]  { background: linear-gradient(135deg, #ff6b00, #ff3366); }
-    .swatch[data-theme="glacier"]{ background: linear-gradient(135deg, #e0f7fa, #00838f); }
-    .swatch[data-theme="venom"]  { background: linear-gradient(135deg, #39ff14, #00cc44); }
-    .swatch[data-theme="sakura"] { background: linear-gradient(135deg, #ff9ec4, #ff6fa8); }
-    .swatch[data-theme="void"]   { background: linear-gradient(135deg, #6600ff, #0044ff); }
+    .swatch.active { border-color: rgba(255,255,255,0.8); transform: scale(1.25); }
+    .swatch[data-theme="aurora"]  { background: linear-gradient(135deg,#00f5c8,#8b5cf6); }
+    .swatch[data-theme="ember"]   { background: linear-gradient(135deg,#ff6b00,#ff3366); }
+    .swatch[data-theme="glacier"] { background: linear-gradient(135deg,#e0f7fa,#00838f); }
+    .swatch[data-theme="venom"]   { background: linear-gradient(135deg,#39ff14,#00cc44); }
+    .swatch[data-theme="sakura"]  { background: linear-gradient(135deg,#ff9ec4,#ff6fa8); }
+    .swatch[data-theme="void"]    { background: linear-gradient(135deg,#6600ff,#0044ff); }
+    .swatch[data-theme="solar"]   { background: linear-gradient(135deg,#ffe066,#ff0044); }
+    .swatch[data-theme="abyss"]   { background: linear-gradient(135deg,#00ffee,#001155); }
+    .swatch[data-theme="neon"]    { background: linear-gradient(135deg,#ff00cc,#ffff00); }
+    .swatch[data-theme="copper"]  { background: linear-gradient(135deg,#ffb347,#8b3a00); }
 
-    /* ── LEVEL METER ── */
-    .level-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.65rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
-    .level-bar {
-      width: 80px; height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .level-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--c1, #a78bfa), var(--c3, #f472b6));
-      border-radius: 2px;
-      width: 0%;
-      transition: width 0.08s;
-    }
-
-    /* ── SOURCE MODAL ── */
+    /* ── MODAL ── */
     #modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(4,4,10,0.85);
-      backdrop-filter: blur(8px);
+      position: fixed; inset: 0; background: rgba(4,4,10,0.82);
+      backdrop-filter: blur(10px);
       display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s ease;
+      z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
     #modal-overlay.visible { opacity: 1; pointer-events: all; }
-
     .modal {
-      background: #0e0e1a;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 32px 28px;
-      width: 340px;
-      display: flex; flex-direction: column; gap: 20px;
+      background: #0c0c1a; border: 1px solid var(--border); border-radius: 14px;
+      padding: 30px 26px; width: 330px;
+      display: flex; flex-direction: column; gap: 18px;
     }
-
-    .modal h3 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.3rem;
-      letter-spacing: 0.15em;
-      color: var(--text);
-    }
-    .modal p {
-      font-size: 0.68rem;
-      color: var(--muted);
-      line-height: 1.7;
-      letter-spacing: 0.06em;
-    }
-
-    .source-options { display: flex; flex-direction: column; gap: 10px; }
-
+    .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.16em; }
+    .modal p { font-size: 0.66rem; color: var(--muted); line-height: 1.75; letter-spacing: 0.06em; }
+    .source-options { display: flex; flex-direction: column; gap: 9px; }
     .source-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      padding: 14px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      text-align: left;
-      display: flex; align-items: center; gap: 12px;
-      transition: all 0.2s;
+      font-family: 'DM Mono', monospace; font-size: 0.67rem; letter-spacing: 0.09em;
+      padding: 13px 16px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      text-align: left; display: flex; align-items: center; gap: 11px; transition: all 0.2s;
     }
-    .source-btn:hover {
-      border-color: var(--c1, #a78bfa);
-      background: rgba(255,255,255,0.03);
-      box-shadow: 0 0 14px var(--glow-clr, rgba(167,139,250,0.15));
-    }
-    .source-btn .src-icon { font-size: 1.3rem; }
-    .source-btn .src-label { display: flex; flex-direction: column; gap: 3px; }
+    .source-btn:hover { border-color: var(--c1); box-shadow: 0 0 12px var(--glow); }
+    .source-btn .src-icon { font-size: 1.2rem; }
+    .source-btn .src-label { display: flex; flex-direction: column; gap: 2px; }
     .source-btn .src-title { color: var(--text); }
-    .source-btn .src-desc  { font-size: 0.62rem; color: var(--muted); }
-
+    .source-btn .src-desc { font-size: 0.6rem; color: var(--muted); }
     .modal-cancel {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      background: none; border: none;
-      color: var(--muted); cursor: pointer;
-      text-align: center;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em;
+      background: none; border: none; color: var(--muted); cursor: pointer; text-align: center;
       transition: color 0.2s;
     }
     .modal-cancel:hover { color: var(--text); }
 
     /* ── TOAST ── */
     #toast {
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      background: #1a0a0a; border: 1px solid rgba(255,80,80,0.3);
-      color: rgba(255,140,140,0.9);
-      font-size: 0.68rem; letter-spacing: 0.08em;
-      padding: 10px 20px; border-radius: 6px;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 200;
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      background: #180808; border: 1px solid rgba(255,80,80,0.28);
+      color: rgba(255,140,140,0.88); font-size: 0.66rem; letter-spacing: 0.07em;
+      padding: 9px 18px; border-radius: 6px; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s; z-index: 9999; white-space: nowrap;
     }
     #toast.show { opacity: 1; }
+
+    /* ── THEATER MODE ── */
+    body.theater header,
+    body.theater footer { opacity: 0 !important; pointer-events: none; }
+    body.theater #canvas-wrap { position: fixed; inset: 0; z-index: 1; }
+
+    .hint {
+      position: fixed; bottom: 16px; right: 16px;
+      font-size: 0.58rem; color: rgba(255,255,255,0.18);
+      letter-spacing: 0.1em; pointer-events: none;
+      opacity: 1; transition: opacity 1s;
+      z-index: 9997;
+    }
+    .hint.fade { opacity: 0; }
   </style>
 </head>
 <body data-theme="aurora">
@@ -396,13 +247,15 @@
 
   <header>
     <div class="logo">AURALUX</div>
-    <div id="status" class="status-pill">
-      <div class="dot"></div>
-      <span id="status-text">STANDBY</span>
-    </div>
-    <div class="level-wrap">
-      <span>LEVEL</span>
-      <div class="level-bar"><div class="level-fill" id="level-fill"></div></div>
+    <div class="header-right">
+      <div class="level-wrap">
+        <span>LVL</span>
+        <div class="level-bar"><div class="level-fill" id="level-fill"></div></div>
+      </div>
+      <div id="status" class="status-pill">
+        <div class="dot"></div>
+        <span id="status-text">STANDBY</span>
+      </div>
     </div>
   </header>
 
@@ -412,521 +265,731 @@
       <div class="idle-ring"><div class="idle-icon">◎</div></div>
       <div class="idle-text">
         <h2>READY TO VISUALIZE</h2>
-        <p>Capture system audio — works even with speakers or headphones connected.</p>
+        <p>Captures system audio — works even with speakers or headphones connected.</p>
       </div>
     </div>
   </div>
-
-  <!-- Source picker modal -->
-  <div id="modal-overlay">
-    <div class="modal">
-      <h3>SELECT AUDIO SOURCE</h3>
-      <p>Choose how to capture audio. System audio works with speakers or headphones connected — open this file in a browser tab for best results.</p>
-      <div class="source-options">
-        <button class="source-btn" id="src-system">
-          <span class="src-icon">🖥️</span>
-          <span class="src-label">
-            <span class="src-title">SYSTEM AUDIO</span>
-            <span class="src-desc">Capture everything playing on your device</span>
-          </span>
-        </button>
-        <button class="source-btn" id="src-mic">
-          <span class="src-icon">🎙️</span>
-          <span class="src-label">
-            <span class="src-title">MICROPHONE</span>
-            <span class="src-desc">Use mic input — works in all environments</span>
-          </span>
-        </button>
-      </div>
-      <button class="modal-cancel" id="modal-cancel">CANCEL</button>
-    </div>
-  </div>
-
-  <div id="toast"></div>
 
   <footer>
     <div class="btn-group">
-      <button class="btn primary" id="btn-start">▶ CAPTURE AUDIO</button>
+      <button class="btn primary" id="btn-start">▶ CAPTURE</button>
       <button class="btn danger" id="btn-stop" style="display:none">■ STOP</button>
+      <button class="btn icon-btn" id="btn-theater" title="Theater mode (T)">⛶</button>
     </div>
 
     <div class="mode-tabs">
       <button class="mode-tab active" data-mode="bars">BARS</button>
       <button class="mode-tab" data-mode="wave">WAVE</button>
       <button class="mode-tab" data-mode="radial">RADIAL</button>
-      <button class="mode-tab" data-mode="particles">PARTICLES</button>
+      <button class="mode-tab" data-mode="lissajous">LISSA</button>
+      <button class="mode-tab" data-mode="terrain">TERRAIN</button>
+      <button class="mode-tab" data-mode="dna">DNA</button>
+      <button class="mode-tab" data-mode="galaxy">GALAXY</button>
+    </div>
+
+    <div class="sliders">
+      <div class="slider-wrap">
+        <span>☀</span>
+        <input type="range" id="brightness-slider" min="0.2" max="1" step="0.02" value="1">
+      </div>
     </div>
 
     <div class="theme-row">
-      <div class="swatch active" data-theme="aurora" title="Aurora"></div>
+      <div class="swatch active" data-theme="aurora"  title="Aurora"></div>
       <div class="swatch" data-theme="ember"   title="Ember"></div>
       <div class="swatch" data-theme="glacier" title="Glacier"></div>
       <div class="swatch" data-theme="venom"   title="Venom"></div>
       <div class="swatch" data-theme="sakura"  title="Sakura"></div>
       <div class="swatch" data-theme="void"    title="Void"></div>
+      <div class="swatch" data-theme="solar"   title="Solar"></div>
+      <div class="swatch" data-theme="abyss"   title="Abyss"></div>
+      <div class="swatch" data-theme="neon"    title="Neon"></div>
+      <div class="swatch" data-theme="copper"  title="Copper"></div>
     </div>
   </footer>
-
 </div>
 
-<script>
-// ─────────────────────────────────────────────
-// AURALUX — Audio Visualizer Engine
-// ─────────────────────────────────────────────
+<!-- Modal -->
+<div id="modal-overlay">
+  <div class="modal">
+    <h3>SELECT AUDIO SOURCE</h3>
+    <p>System audio captures everything playing on your device, including speakers and headphones. Open as a local file in Chrome/Edge for best results.</p>
+    <div class="source-options">
+      <button class="source-btn" id="src-system">
+        <span class="src-icon">🖥️</span>
+        <span class="src-label">
+          <span class="src-title">SYSTEM AUDIO</span>
+          <span class="src-desc">Loopback — works with any output device</span>
+        </span>
+      </button>
+      <button class="source-btn" id="src-mic">
+        <span class="src-icon">🎙️</span>
+        <span class="src-label">
+          <span class="src-title">MICROPHONE</span>
+          <span class="src-desc">Works everywhere, no extra setup</span>
+        </span>
+      </button>
+    </div>
+    <button class="modal-cancel" id="modal-cancel">CANCEL</button>
+  </div>
+</div>
 
-const canvas = document.getElementById('viz');
-const ctx    = canvas.getContext('2d');
-const idle   = document.getElementById('idle');
-const status = document.getElementById('status');
+<div id="toast"></div>
+<div class="hint" id="hint">PRESS T TO TOGGLE UI · ESC TO EXIT</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  AURALUX  —  Visualizer Engine v2
+// ══════════════════════════════════════════════
+
+const canvas     = document.getElementById('viz');
+const ctx        = canvas.getContext('2d');
+const idle       = document.getElementById('idle');
+const statusEl   = document.getElementById('status');
 const statusText = document.getElementById('status-text');
 const levelFill  = document.getElementById('level-fill');
 const btnStart   = document.getElementById('btn-start');
 const btnStop    = document.getElementById('btn-stop');
-const modalOverlay = document.getElementById('modal-overlay');
-const toastEl      = document.getElementById('toast');
+const btnTheater = document.getElementById('btn-theater');
+const modal      = document.getElementById('modal-overlay');
+const toastEl    = document.getElementById('toast');
+const hintEl     = document.getElementById('hint');
+const brightSlider = document.getElementById('brightness-slider');
 
 let audioCtx, analyser, source, stream;
-let animId;
-let isRunning = false;
+let animId, isRunning = false;
 let mode = 'bars';
-let theme = 'aurora';
+let particles = [], trails = [], nodes = [];
+let frame = 0;
+let theaterMode = false;
+let hintTimer;
 
 // ── Toast ──
-function toast(msg, duration = 3500) {
+let toastTimer;
+function toast(msg, dur = 3800) {
+  clearTimeout(toastTimer);
   toastEl.textContent = msg;
   toastEl.classList.add('show');
-  setTimeout(() => toastEl.classList.remove('show'), duration);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), dur);
 }
 
-// ── Theme color extraction ──
-function getThemeColors() {
+// ── Theme ──
+function colors() {
   const s = getComputedStyle(document.body);
-  return {
-    c1: s.getPropertyValue('--c1').trim(),
-    c2: s.getPropertyValue('--c2').trim(),
-    c3: s.getPropertyValue('--c3').trim(),
-    c4: s.getPropertyValue('--c4').trim(),
+  return ['--c1','--c2','--c3','--c4'].map(v => s.getPropertyValue(v).trim());
+}
+
+function rgba(hex, a) {
+  if (!hex || hex.length < 4) return `rgba(128,128,128,${a})`;
+  hex = hex.trim();
+  if (hex.startsWith('rgb')) {
+    const m = hex.match(/\d+/g);
+    return `rgba(${m[0]},${m[1]},${m[2]},${a})`;
+  }
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function lerpHex(h1, h2, t) {
+  const parse = h => {
+    h = h.trim();
+    if (h.startsWith('rgb')) { const m = h.match(/\d+/g); return m.map(Number); }
+    return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
   };
+  const a = parse(h1), b = parse(h2);
+  return `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
 }
 
 // ── Resize ──
 function resize() {
-  const wrap = document.getElementById('canvas-wrap');
-  canvas.width  = wrap.clientWidth  * window.devicePixelRatio;
-  canvas.height = wrap.clientHeight * window.devicePixelRatio;
-  canvas.style.width  = wrap.clientWidth  + 'px';
-  canvas.style.height = wrap.clientHeight + 'px';
+  const w = canvas.parentElement;
+  canvas.width  = w.clientWidth  * devicePixelRatio;
+  canvas.height = w.clientHeight * devicePixelRatio;
+  canvas.style.width  = w.clientWidth  + 'px';
+  canvas.style.height = w.clientHeight + 'px';
+  nodes = []; // reset DNA nodes on resize
 }
 window.addEventListener('resize', resize);
 resize();
 
-// ── Modal ──
-function showModal() { modalOverlay.classList.add('visible'); }
-function hideModal() { modalOverlay.classList.remove('visible'); }
-
-document.getElementById('src-system').addEventListener('click', () => {
-  hideModal(); startSystemCapture();
-});
-document.getElementById('src-mic').addEventListener('click', () => {
-  hideModal(); startMicCapture();
-});
-document.getElementById('modal-cancel').addEventListener('click', hideModal);
-
-// ── System audio via getDisplayMedia ──
-async function startSystemCapture() {
-  try {
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { width: 1, height: 1, frameRate: 1 },
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        sampleRate: 44100,
-      }
-    });
-
-    const audioTracks = stream.getAudioTracks();
-    if (!audioTracks.length) {
-      stream.getTracks().forEach(t => t.stop());
-      toast('No audio track detected — make sure to enable "Share audio" in the dialog.');
-      return;
-    }
-
-    initAnalyser(stream, 'SYSTEM');
-  } catch (err) {
-    if (err.name === 'AbortError' || err.name === 'NotAllowedError') return;
-    if (err.name === 'NotSupportedError' || err.message.includes('permissions policy')) {
-      toast('System capture blocked here — open as a local file in Chrome/Edge, or use Microphone instead.');
-    } else {
-      toast('Could not capture system audio: ' + err.message);
-    }
-  }
-}
-
-// ── Microphone via getUserMedia ──
-async function startMicCapture() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      }
-    });
-    initAnalyser(stream, 'MIC');
-  } catch (err) {
-    if (err.name === 'NotAllowedError') {
-      toast('Microphone access denied. Please allow mic permissions and try again.');
-    } else {
-      toast('Could not access microphone: ' + err.message);
-    }
-  }
-}
-
-// ── Shared audio init ──
+// ── Audio init ──
 function initAnalyser(s, label) {
   stream = s;
   audioCtx = new AudioContext();
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.82;
-
+  analyser.smoothingTimeConstant = 0.8;
   source = audioCtx.createMediaStreamSource(stream);
   source.connect(analyser);
-
-  stream.getTracks().forEach(track => {
-    track.addEventListener('ended', () => stopCapture());
-  });
+  stream.getTracks().forEach(t => t.addEventListener('ended', stopCapture));
 
   isRunning = true;
   idle.classList.add('hidden');
-  status.classList.add('active');
+  statusEl.classList.add('active');
   statusText.textContent = label;
   btnStart.style.display = 'none';
   btnStop.style.display  = '';
-
+  particles = []; trails = []; nodes = [];
   draw();
+}
+
+async function startSystemCapture() {
+  try {
+    const s = await navigator.mediaDevices.getDisplayMedia({
+      video: { width:1, height:1, frameRate:1 },
+      audio: { echoCancellation:false, noiseSuppression:false }
+    });
+    if (!s.getAudioTracks().length) {
+      s.getTracks().forEach(t=>t.stop());
+      toast('No audio track — enable "Share audio" in the browser dialog.');
+      return;
+    }
+    initAnalyser(s, 'SYSTEM');
+  } catch(e) {
+    if (e.name === 'NotAllowedError' || e.name === 'AbortError') return;
+    toast('System audio blocked here. Try opening as a local file, or use Microphone.');
+  }
+}
+
+async function startMicCapture() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+    });
+    initAnalyser(s, 'MIC');
+  } catch(e) {
+    toast(e.name === 'NotAllowedError' ? 'Mic access denied.' : 'Mic error: ' + e.message);
+  }
 }
 
 function stopCapture() {
   isRunning = false;
   cancelAnimationFrame(animId);
-  if (stream) stream.getTracks().forEach(t => t.stop());
+  if (stream) stream.getTracks().forEach(t=>t.stop());
   if (audioCtx) audioCtx.close();
   audioCtx = analyser = source = stream = null;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   idle.classList.remove('hidden');
-  status.classList.remove('active');
+  statusEl.classList.remove('active');
   statusText.textContent = 'STANDBY';
-  levelFill.style.width  = '0%';
+  levelFill.style.width = '0%';
   btnStart.style.display = '';
   btnStop.style.display  = 'none';
+  particles = []; trails = [];
 }
 
-// ── Draw loop ──
-let particles = [];
-
+// ══════════════════════════════════════════════
+//  DRAW LOOP
+// ══════════════════════════════════════════════
 function draw() {
   if (!isRunning) return;
   animId = requestAnimationFrame(draw);
+  frame++;
 
   const W = canvas.width, H = canvas.height;
-  const bufLen = analyser.frequencyBinCount;
-  const freqData = new Uint8Array(bufLen);
-  const timeData = new Uint8Array(analyser.fftSize);
-  analyser.getByteFrequencyData(freqData);
-  analyser.getByteTimeDomainData(timeData);
+  const N = analyser.frequencyBinCount;
+  const freq = new Uint8Array(N);
+  const time = new Uint8Array(analyser.fftSize);
+  analyser.getByteFrequencyData(freq);
+  analyser.getByteTimeDomainData(time);
 
-  const avg = freqData.reduce((a, b) => a + b, 0) / bufLen;
-  levelFill.style.width = Math.min(100, avg / 128 * 100) + '%';
+  const avg = freq.reduce((a,b)=>a+b,0)/N;
+  const bass = freq.slice(0,20).reduce((a,b)=>a+b,0)/20/255;
+  const mid  = freq.slice(20,100).reduce((a,b)=>a+b,0)/80/255;
+  const high = freq.slice(100,200).reduce((a,b)=>a+b,0)/100/255;
 
-  const c = getThemeColors();
+  levelFill.style.width = Math.min(100, avg/128*100) + '%';
 
-  ctx.fillStyle = 'rgba(8,8,16,0.18)';
-  ctx.fillRect(0, 0, W, H);
+  const C = colors(); // [c1,c2,c3,c4]
 
-  switch (mode) {
-    case 'bars':      drawBars(W, H, freqData, c);           break;
-    case 'wave':      drawWave(W, H, timeData, c);           break;
-    case 'radial':    drawRadial(W, H, freqData, c);         break;
-    case 'particles': drawParticles(W, H, freqData, timeData, c); break;
+  // slight persistence fade
+  ctx.fillStyle = `rgba(7,7,15,0.2)`;
+  ctx.fillRect(0,0,W,H);
+
+  switch(mode) {
+    case 'bars':      drawBars(W,H,freq,time,C,bass,mid,high); break;
+    case 'wave':      drawWave(W,H,freq,time,C,bass,mid,high); break;
+    case 'radial':    drawRadial(W,H,freq,C,bass,mid,high);    break;
+    case 'lissajous': drawLissajous(W,H,time,freq,C,bass,mid,high); break;
+    case 'terrain':   drawTerrain(W,H,freq,time,C,bass,mid,high);   break;
+    case 'dna':       drawDNA(W,H,freq,time,C,bass,mid,high);       break;
+    case 'galaxy':    drawGalaxy(W,H,freq,time,C,bass,mid,high);    break;
   }
 }
 
-// ── BARS ──
-function drawBars(W, H, freqData, c) {
-  const count = 120;
-  const barW   = (W / count) * 0.7;
-  const gap    = (W / count) * 0.3;
-  const step   = Math.floor(freqData.length / count);
+// ══════════════════════════════════════════════
+//  VISUALIZER 1 — BARS (morphing liquid bars)
+// ══════════════════════════════════════════════
+function drawBars(W,H,freq,time,C,bass,mid,high) {
+  const count = 96;
+  const step  = Math.floor(freq.length / count);
+  const bw    = W / count;
 
   for (let i = 0; i < count; i++) {
-    const val  = freqData[i * step] / 255;
-    const barH = val * H * 0.85;
-    const x    = i * (barW + gap) + gap / 2;
-    const y    = H - barH;
+    const v   = freq[i*step]/255;
+    const bh  = v * H * 0.88;
+    const x   = i * bw;
+    const t   = i/count;
 
-    // Color gradient based on frequency position
-    const t = i / count;
-    const grad = ctx.createLinearGradient(x, H, x, y);
-    grad.addColorStop(0,   hexAlpha(c.c1, 0.9));
-    grad.addColorStop(0.5, hexAlpha(c.c2, 0.8));
-    grad.addColorStop(1,   hexAlpha(c.c3, 0.6));
+    // color shifts with frequency intensity
+    const col = t < 0.5 ? lerpHex(C[0],C[1],t*2) : lerpHex(C[1],C[2],( t-0.5)*2);
+
+    // Wavy top using sine offset per bar
+    const wobble = Math.sin(frame*0.04 + i*0.3) * v * 10;
+
+    const grad = ctx.createLinearGradient(x, H, x, H - bh + wobble);
+    grad.addColorStop(0, rgba(C[0], 0.9));
+    grad.addColorStop(0.5, rgba(C[1], 0.75));
+    grad.addColorStop(1, rgba(C[2], 0.5));
     ctx.fillStyle = grad;
 
-    // Rounded top
-    const r = Math.min(barW / 2, 4);
+    // Rounded pill bars
+    const r = bw * 0.38;
+    const barH = bh - wobble;
+    if (barH < 2) continue;
     ctx.beginPath();
-    ctx.moveTo(x, H);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.lineTo(x + barW - r, y);
-    ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
-    ctx.lineTo(x + barW, H);
-    ctx.closePath();
+    ctx.roundRect(x + bw*0.08, H - barH, bw*0.84, barH, [r, r, 0, 0]);
     ctx.fill();
 
-    // Glow cap
-    if (val > 0.3) {
-      ctx.shadowBlur = 12 * val;
-      ctx.shadowColor = c.c1;
-      ctx.fillStyle = c.c1;
-      ctx.fillRect(x, y - 2, barW, 2);
+    // glow cap
+    if (v > 0.4) {
+      ctx.shadowBlur = 15*v; ctx.shadowColor = col;
+      ctx.fillStyle = rgba(col, v);
+      ctx.fillRect(x + bw*0.08, H - barH - 2, bw*0.84, 2);
       ctx.shadowBlur = 0;
     }
+  }
 
-    // Mirror below (subtle)
-    ctx.globalAlpha = 0.15;
+  // Bass pulse underline
+  if (bass > 0.35) {
+    const grad = ctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0, rgba(C[0],0)); grad.addColorStop(0.5, rgba(C[0], bass*0.7)); grad.addColorStop(1, rgba(C[0],0));
     ctx.fillStyle = grad;
-    ctx.fillRect(x, H, barW, barH * 0.3);
-    ctx.globalAlpha = 1;
+    ctx.fillRect(0, H-3, W, 3);
   }
 }
 
-// ── WAVE ──
-function drawWave(W, H, timeData, c) {
-  const midY = H / 2;
-  const sliceW = W / timeData.length;
-
-  // Draw 3 layered waves with slight offsets for depth
-  for (let layer = 2; layer >= 0; layer--) {
-    const offset = (layer - 1) * (H * 0.06);
-    const alpha  = [0.15, 0.35, 0.9][layer];
-    const color  = [c.c3, c.c2, c.c1][layer];
-
-    ctx.beginPath();
-    ctx.moveTo(0, midY + offset);
-
-    for (let i = 0; i < timeData.length; i++) {
-      const v = (timeData[i] / 128) - 1;
-      const x = i * sliceW;
-      const y = midY + (v * H * 0.38) + offset;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle = hexAlpha(color, alpha);
-    ctx.lineWidth   = layer === 2 ? 2.5 : 1;
-    ctx.shadowBlur  = layer === 2 ? 18 : 0;
-    ctx.shadowColor = color;
-    ctx.stroke();
-    ctx.shadowBlur  = 0;
-  }
-
-  // Center line
-  ctx.beginPath();
-  ctx.moveTo(0, midY);
-  ctx.lineTo(W, midY);
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-}
-
-// ── RADIAL ──
-function drawRadial(W, H, freqData, c) {
-  const cx = W / 2, cy = H / 2;
-  const count = 256;
-  const step  = Math.floor(freqData.length / count);
-  const baseR = Math.min(W, H) * 0.2;
-  const maxR  = Math.min(W, H) * 0.42;
-
-  // Rotating outer glow ring
-  const t = Date.now() / 1000;
-  const ringGrad = ctx.createRadialGradient(cx, cy, baseR * 0.9, cx, cy, baseR * 1.05);
-  ringGrad.addColorStop(0, hexAlpha(c.c1, 0.0));
-  ringGrad.addColorStop(0.5, hexAlpha(c.c1, 0.08));
-  ringGrad.addColorStop(1, hexAlpha(c.c1, 0.0));
-  ctx.beginPath();
-  ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-  ctx.strokeStyle = hexAlpha(c.c1, 0.12);
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
-    const val   = freqData[i * step] / 255;
-    const r1    = baseR + 2;
-    const r2    = baseR + val * (maxR - baseR);
-
-    const x1 = cx + Math.cos(angle) * r1;
-    const y1 = cy + Math.sin(angle) * r1;
-    const x2 = cx + Math.cos(angle) * r2;
-    const y2 = cy + Math.sin(angle) * r2;
-
-    const t = i / count;
-    let color;
-    if (t < 0.33)      color = lerpColor(c.c1, c.c2, t / 0.33);
-    else if (t < 0.66) color = lerpColor(c.c2, c.c3, (t - 0.33) / 0.33);
-    else               color = lerpColor(c.c3, c.c4, (t - 0.66) / 0.34);
+// ══════════════════════════════════════════════
+//  VISUALIZER 2 — WAVE (aurora ribbons)
+// ══════════════════════════════════════════════
+function drawWave(W,H,freq,time,C,bass,mid,high) {
+  const layers = 5;
+  for (let l = 0; l < layers; l++) {
+    const t   = l/(layers-1);
+    const col = lerpHex(C[0], C[2], t);
+    const yOff  = (l - layers/2) * H * 0.08;
+    const amp   = (0.25 - t*0.1) * H * (0.5 + mid);
+    const alpha = 0.08 + (1-t)*0.55;
+    const lw    = 2.5 - t*1.5;
 
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = hexAlpha(color, 0.85 * val + 0.1);
-    ctx.lineWidth   = 1.5;
-
-    if (val > 0.7) {
-      ctx.shadowBlur  = 8 * val;
-      ctx.shadowColor = color;
+    for (let i = 0; i < time.length; i++) {
+      const x = (i / time.length) * W;
+      const v = (time[i]/128) - 1;
+      // each layer offset slightly in time for shimmer
+      const offset = Math.sin(frame*0.01 + l*0.8 + i*0.005) * 8 * high;
+      const y = H/2 + yOff + v * amp + offset;
+      i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
     }
+    ctx.strokeStyle = rgba(col, alpha);
+    ctx.lineWidth   = lw;
+    ctx.shadowBlur  = l === 0 ? 20*mid : 0;
+    ctx.shadowColor = C[0];
     ctx.stroke();
     ctx.shadowBlur = 0;
   }
 
-  // Center dot
-  const avgLow = [...freqData.slice(0, 20)].reduce((a,b)=>a+b,0) / 20 / 255;
-  const dotR   = 6 + avgLow * 14;
-  const dotGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, dotR);
-  dotGrad.addColorStop(0, c.c1);
-  dotGrad.addColorStop(1, hexAlpha(c.c1, 0));
-  ctx.beginPath();
-  ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
-  ctx.fillStyle = dotGrad;
-  ctx.fill();
+  // Frequency heatmap strip at bottom
+  const stripH = 18;
+  const bw = W / 128;
+  for (let i = 0; i < 128; i++) {
+    const v   = freq[i*4]/255;
+    const col = lerpHex(C[2],C[0],v);
+    ctx.fillStyle = rgba(col, v*0.7);
+    ctx.fillRect(i*bw, H-stripH, bw-0.5, stripH*v);
+  }
 }
 
-// ── PARTICLES ──
-const MAX_PARTICLES = 180;
+// ══════════════════════════════════════════════
+//  VISUALIZER 3 — RADIAL (blooming mandala)
+// ══════════════════════════════════════════════
+function drawRadial(W,H,freq,C,bass,mid,high) {
+  const cx = W/2, cy = H/2;
+  const N  = 180;
+  const step = Math.floor(freq.length/N);
+  const baseR = Math.min(W,H)*0.18;
+  const maxR  = Math.min(W,H)*0.44;
+  const rot   = frame * 0.004;
 
-function drawParticles(W, H, freqData, timeData, c) {
-  const cx = W / 2, cy = H / 2;
+  // Multiple petal rings
+  for (let ring = 0; ring < 3; ring++) {
+    const ringScale = 1 - ring * 0.28;
+    const ringAlpha = 1 - ring * 0.3;
+    const ringOff   = ring * Math.PI / N;
 
-  // Spawn particles on beats
-  const avgHigh = [...freqData.slice(50, 150)].reduce((a,b)=>a+b,0) / 100 / 255;
-  const avgLow  = [...freqData.slice(0, 20)].reduce((a,b)=>a+b,0)  / 20  / 255;
+    for (let i = 0; i < N; i++) {
+      const angle = (i/N)*Math.PI*2 - Math.PI/2 + rot*(1+ring*0.3) + ringOff;
+      const v     = freq[i*step]/255;
+      const r1    = baseR * ringScale;
+      const r2    = r1 + v * (maxR - baseR) * ringScale;
 
-  if (avgLow > 0.45 && particles.length < MAX_PARTICLES) {
-    const count = Math.floor(avgLow * 6);
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 4 * avgLow;
-      const colorChoice = [c.c1, c.c2, c.c3, c.c4][Math.floor(Math.random() * 4)];
-      particles.push({
-        x: cx, y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1.0,
-        decay: 0.012 + Math.random() * 0.01,
-        size: 1.5 + Math.random() * 3,
-        color: colorChoice
+      const t   = i/N;
+      const col = t < 0.33 ? lerpHex(C[0],C[1],t/0.33) : t < 0.66 ? lerpHex(C[1],C[2],(t-0.33)/0.33) : lerpHex(C[2],C[3],(t-0.66)/0.34);
+
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(angle)*r1, cy + Math.sin(angle)*r1);
+      ctx.lineTo(cx + Math.cos(angle)*r2, cy + Math.sin(angle)*r2);
+      ctx.strokeStyle = rgba(col, (0.6 + v*0.4)*ringAlpha);
+      ctx.lineWidth   = 1.5 - ring*0.4;
+      if (v > 0.65 && ring === 0) { ctx.shadowBlur = 8; ctx.shadowColor = col; }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Pulsing core
+  const coreR = 8 + bass*40;
+  const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
+  cg.addColorStop(0, rgba(C[0],1));
+  cg.addColorStop(0.5, rgba(C[1],0.5));
+  cg.addColorStop(1, rgba(C[0],0));
+  ctx.beginPath(); ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fillStyle = cg; ctx.fill();
+
+  // Shockwave rings on bass hit
+  if (bass > 0.6) {
+    for (let i = 0; i < 2; i++) {
+      const r = (frame % 60) / 60 * maxR * (0.5 + i*0.3);
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = rgba(C[0], 0.3*(1-r/maxR));
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  VISUALIZER 4 — LISSAJOUS (reactive XY scope)
+// ══════════════════════════════════════════════
+function drawLissajous(W,H,time,freq,C,bass,mid,high) {
+  const cx = W/2, cy = H/2;
+  const size = Math.min(W,H) * 0.42;
+  const len  = time.length;
+
+  // Trail history
+  if (!window._lissTrail) window._lissTrail = [];
+  const trail = window._lissTrail;
+
+  // XY from left/right channels approximation using interleaved samples
+  const points = [];
+  for (let i = 0; i < len-1; i += 2) {
+    const x = ((time[i  ]/128)-1) * size * (1 + mid*0.4);
+    const y = ((time[i+1]/128)-1) * size * (1 + bass*0.4);
+    points.push([cx+x, cy+y]);
+  }
+  trail.push(points);
+  if (trail.length > 12) trail.shift();
+
+  // Draw trail with fade
+  for (let t = 0; t < trail.length; t++) {
+    const a   = (t/trail.length);
+    const pts = trail[t];
+    const col = lerpHex(C[2], C[0], a);
+
+    ctx.beginPath();
+    pts.forEach(([px,py],i) => i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py));
+    ctx.strokeStyle = rgba(col, a*0.6);
+    ctx.lineWidth   = 1 + a*1.5;
+    ctx.shadowBlur  = t === trail.length-1 ? 10*high : 0;
+    ctx.shadowColor = C[0];
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Frequency ring around scope
+  const N = 64;
+  const ringR = size * 1.15;
+  const fstep = Math.floor(freq.length/N);
+  for (let i = 0; i < N; i++) {
+    const angle = (i/N)*Math.PI*2;
+    const v = freq[i*fstep]/255;
+    const r1 = ringR, r2 = ringR + v*size*0.3;
+    const col = lerpHex(C[1],C[3],v);
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(angle)*r1, cy+Math.sin(angle)*r1);
+    ctx.lineTo(cx+Math.cos(angle)*r2, cy+Math.sin(angle)*r2);
+    ctx.strokeStyle = rgba(col, 0.5*v);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+// ══════════════════════════════════════════════
+//  VISUALIZER 5 — TERRAIN (audio landscape)
+// ══════════════════════════════════════════════
+let terrainOffset = 0;
+function drawTerrain(W,H,freq,time,C,bass,mid,high) {
+  terrainOffset += 1.5 + bass*4;
+
+  const rows   = 22;
+  const cols   = 60;
+  const cellW  = W / cols;
+  const cellH  = H / rows * 0.55;
+  const startY = H * 0.72;
+
+  ctx.fillStyle = 'rgba(7,7,15,0.15)';
+  ctx.fillRect(0,0,W,H);
+
+  for (let r = rows-1; r >= 0; r--) {
+    const rowT  = r / rows;
+    const alpha = 0.15 + rowT*0.65;
+    const col   = lerpHex(C[2], C[0], rowT);
+
+    ctx.beginPath();
+    for (let c = 0; c <= cols; c++) {
+      const fi   = Math.floor(c / cols * (freq.length/2));
+      const fv   = freq[fi]/255;
+      const noise = Math.sin((c + terrainOffset*0.04)*0.4 + r*0.7) * 0.3
+                  + Math.sin((c + terrainOffset*0.07)*0.9 + r*0.4) * 0.15;
+      const height = (fv * 0.6 + noise * 0.4) * cellH * rows * rowT * (0.5 + bass*0.8);
+      const x = c * cellW;
+      const y = startY - r * cellH * 0.6 - height;
+
+      c === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    // Fill down
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    const grad = ctx.createLinearGradient(0, startY-rows*cellH, 0, startY);
+    grad.addColorStop(0, rgba(col, alpha));
+    grad.addColorStop(1, rgba(C[2], 0.02));
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.strokeStyle = rgba(col, alpha*1.2);
+    ctx.lineWidth   = r === rows-1 ? 2 : 0.8;
+    if (r === rows-1) { ctx.shadowBlur = 12; ctx.shadowColor = C[0]; }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Stars / particles in sky
+  if (frame % 4 === 0 && high > 0.3) {
+    particles.push({
+      x: Math.random()*W, y: Math.random()*(H*0.45),
+      life: 1, decay: 0.03+Math.random()*0.04,
+      size: 0.5+Math.random()*2,
+      col: C[Math.floor(Math.random()*4)]
+    });
+  }
+  particles = particles.filter(p => {
+    p.life -= p.decay;
+    if (p.life <= 0) return false;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size*p.life, 0, Math.PI*2);
+    ctx.fillStyle = rgba(p.col, p.life*0.8);
+    ctx.fill();
+    return true;
+  });
+}
+
+// ══════════════════════════════════════════════
+//  VISUALIZER 6 — DNA (double helix)
+// ══════════════════════════════════════════════
+let dnaOffset = 0;
+function drawDNA(W,H,freq,time,C,bass,mid,high) {
+  dnaOffset += 1.2 + bass*3;
+
+  const cx  = W/2;
+  const N   = 60;
+  const step = H / N;
+  const amp  = W * 0.22 * (1 + mid*0.5);
+  const fstep = Math.floor(freq.length / N);
+
+  // Draw connecting rungs first
+  for (let i = 0; i < N; i++) {
+    const y    = (i / N) * H;
+    const ang  = (i / N) * Math.PI * 6 + dnaOffset * 0.04;
+    const v    = freq[i * fstep] / 255;
+    const x1   = cx + Math.cos(ang) * amp;
+    const x2   = cx + Math.cos(ang + Math.PI) * amp;
+
+    if (i % 3 === 0) { // rungs every 3 nodes
+      const col = lerpHex(C[1], C[3], v);
+      ctx.beginPath();
+      ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+      ctx.strokeStyle = rgba(col, 0.2 + v*0.5);
+      ctx.lineWidth = 1 + v*3;
+      ctx.shadowBlur = v > 0.5 ? 8 : 0; ctx.shadowColor = col;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Node dots
+      [x1,x2].forEach((x,si) => {
+        const nc = si===0 ? C[0] : C[2];
+        ctx.beginPath(); ctx.arc(x, y, 3+v*5, 0, Math.PI*2);
+        ctx.fillStyle = rgba(nc, 0.8+v*0.2);
+        ctx.shadowBlur = 10*v; ctx.shadowColor = nc;
+        ctx.fill(); ctx.shadowBlur = 0;
       });
     }
   }
 
-  // Waveform backdrop
-  const sliceW = W / timeData.length;
-  ctx.beginPath();
-  for (let i = 0; i < timeData.length; i++) {
-    const v = (timeData[i] / 128) - 1;
-    const x = i * sliceW;
-    const y = cy + v * H * 0.18;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = hexAlpha(c.c2, 0.18);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Update & draw particles
-  particles = particles.filter(p => p.life > 0);
-  for (const p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vx *= 0.98;
-    p.vy *= 0.98;
-    p.life -= p.decay;
-
+  // Draw the two strands
+  for (let strand = 0; strand < 2; strand++) {
+    const phaseOff = strand * Math.PI;
+    const col      = strand === 0 ? C[0] : C[2];
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-    ctx.fillStyle = hexAlpha(p.color, p.life * 0.9);
-    ctx.shadowBlur = 10 * p.life;
-    ctx.shadowColor = p.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-
-  // Beat pulse ring
-  if (avgLow > 0.5) {
-    const r = 30 + avgLow * Math.min(W, H) * 0.35;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = hexAlpha(c.c1, avgLow * 0.4);
-    ctx.lineWidth = 2;
+    for (let i = 0; i <= N*3; i++) {
+      const y   = (i/(N*3)) * H;
+      const ang = (i/(N*3)) * Math.PI*6 + dnaOffset*0.04 + phaseOff;
+      const fi  = Math.floor(i/(N*3) * freq.length);
+      const v   = freq[fi]/255;
+      const x   = cx + Math.cos(ang) * amp * (0.85 + v*0.15);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = rgba(col, 0.7);
+    ctx.lineWidth   = 2.5;
+    ctx.shadowBlur  = 12*mid;
+    ctx.shadowColor = col;
     ctx.stroke();
+    ctx.shadowBlur  = 0;
   }
 }
 
-// ── Helpers ──
-function hexAlpha(hex, alpha) {
-  hex = hex.trim();
-  if (hex.startsWith('rgb')) {
-    const [r,g,b] = hex.match(/\d+/g);
-    return `rgba(${r},${g},${b},${alpha})`;
+// ══════════════════════════════════════════════
+//  VISUALIZER 7 — GALAXY (spiral particle field)
+// ══════════════════════════════════════════════
+function drawGalaxy(W,H,freq,time,C,bass,mid,high) {
+  const cx = W/2, cy = H/2;
+  const N = 180;
+  const fstep = Math.floor(freq.length/N);
+  const rot   = frame * 0.003;
+
+  // Spawn arm particles on beat
+  if (bass > 0.4) {
+    const count = Math.floor(bass * 8);
+    for (let i = 0; i < count; i++) {
+      const arm   = Math.floor(Math.random()*3);
+      const dist  = 20 + Math.random()*Math.min(W,H)*0.38;
+      const angle = (arm/3)*Math.PI*2 + dist*0.015 + rot;
+      const speed = 0.4 + Math.random()*1.5;
+      const col   = C[Math.floor(Math.random()*4)];
+      particles.push({
+        x: cx + Math.cos(angle)*dist*0.3,
+        y: cy + Math.sin(angle)*dist*0.3,
+        tx: cx + Math.cos(angle)*dist,
+        ty: cy + Math.sin(angle)*dist,
+        vx: Math.cos(angle + Math.PI/2)*speed,
+        vy: Math.sin(angle + Math.PI/2)*speed,
+        life:1, decay:0.005+Math.random()*0.012,
+        size:0.8+Math.random()*2.5, col
+      });
+    }
   }
-  const r = parseInt(hex.slice(1,3), 16);
-  const g = parseInt(hex.slice(3,5), 16);
-  const b = parseInt(hex.slice(5,7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+
+  // Update particles
+  particles = particles.filter(p => {
+    p.life -= p.decay;
+    if (p.life <= 0) return false;
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.995; p.vy *= 0.995;
+
+    ctx.beginPath(); ctx.arc(p.x,p.y, p.size*p.life, 0, Math.PI*2);
+    ctx.fillStyle = rgba(p.col, p.life*0.85);
+    ctx.shadowBlur = 6*p.life; ctx.shadowColor = p.col;
+    ctx.fill(); ctx.shadowBlur = 0;
+    return true;
+  });
+  if (particles.length > 800) particles.splice(0, particles.length-800);
+
+  // Frequency spiral arms
+  for (let arm = 0; arm < 3; arm++) {
+    const armOff = (arm/3)*Math.PI*2;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const t     = i/N;
+      const angle = t*Math.PI*4 + armOff + rot;
+      const v     = freq[i*fstep]/255;
+      const r     = t * Math.min(W,H)*0.42 * (0.7 + v*0.4);
+      const x     = cx + Math.cos(angle)*r;
+      const y     = cy + Math.sin(angle)*r;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    const col = C[arm % C.length];
+    ctx.strokeStyle = rgba(col, 0.18 + mid*0.25);
+    ctx.lineWidth = 1.5 + bass;
+    ctx.shadowBlur = 8; ctx.shadowColor = col;
+    ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  // Core glow
+  const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,30+bass*60);
+  cg.addColorStop(0, rgba(C[0],0.9));
+  cg.addColorStop(0.4, rgba(C[1],0.3));
+  cg.addColorStop(1, rgba(C[0],0));
+  ctx.beginPath(); ctx.arc(cx,cy,30+bass*60,0,Math.PI*2);
+  ctx.fillStyle = cg; ctx.fill();
 }
 
-function lerpColor(a, b, t) {
-  a = a.trim(); b = b.trim();
-  const pa = a.startsWith('rgb') ? a.match(/\d+/g).map(Number) : [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
-  const pb = b.startsWith('rgb') ? b.match(/\d+/g).map(Number) : [parseInt(b.slice(1,3),16), parseInt(b.slice(3,5),16), parseInt(b.slice(5,7),16)];
-  const r = Math.round(pa[0] + (pb[0] - pa[0]) * t);
-  const g = Math.round(pa[1] + (pb[1] - pa[1]) * t);
-  const bl= Math.round(pa[2] + (pb[2] - pa[2]) * t);
-  return `rgb(${r},${g},${bl})`;
-}
-
-// ── Event Listeners ──
-btnStart.addEventListener('click', showModal);
+// ══════════════════════════════════════════════
+//  UI EVENTS
+// ══════════════════════════════════════════════
+btnStart.addEventListener('click', () => modal.classList.add('visible'));
 btnStop .addEventListener('click', stopCapture);
+document.getElementById('src-system').addEventListener('click', () => { modal.classList.remove('visible'); startSystemCapture(); });
+document.getElementById('src-mic')   .addEventListener('click', () => { modal.classList.remove('visible'); startMicCapture(); });
+document.getElementById('modal-cancel').addEventListener('click', () => modal.classList.remove('visible'));
 
-document.querySelectorAll('.mode-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    mode = btn.dataset.mode;
-    particles = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
+// Mode tabs
+document.querySelectorAll('.mode-tab').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  mode = btn.dataset.mode;
+  particles = []; trails = [];
+  window._lissTrail = [];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}));
+
+// Theme swatches
+document.querySelectorAll('.swatch').forEach(sw => sw.addEventListener('click', () => {
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  sw.classList.add('active');
+  document.body.dataset.theme = sw.dataset.theme;
+}));
+
+// Brightness
+brightSlider.addEventListener('input', () => {
+  document.documentElement.style.setProperty('--brightness', brightSlider.value);
 });
 
-document.querySelectorAll('.swatch').forEach(sw => {
-  sw.addEventListener('click', () => {
-    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-    sw.classList.add('active');
-    theme = sw.dataset.theme;
-    document.body.dataset.theme = theme;
-  });
-});
+// Theater mode
+function toggleTheater() {
+  theaterMode = !theaterMode;
+  document.body.classList.toggle('theater', theaterMode);
+  btnTheater.textContent = theaterMode ? '⛶' : '⛶';
+
+  if (theaterMode) {
+    hintEl.classList.remove('fade');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hintEl.classList.add('fade'), 3000);
+  } else {
+    hintEl.classList.add('fade');
+  }
+}
+btnTheater.addEventListener('click', toggleTheater);
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
-  if (e.key === ' ') { e.preventDefault(); isRunning ? stopCapture() : showModal(); }
-  if (e.key === '1') document.querySelector('[data-mode="bars"]').click();
-  if (e.key === '2') document.querySelector('[data-mode="wave"]').click();
-  if (e.key === '3') document.querySelector('[data-mode="radial"]').click();
-  if (e.key === '4') document.querySelector('[data-mode="particles"]').click();
+  if (e.key === ' ')   { e.preventDefault(); isRunning ? stopCapture() : modal.classList.add('visible'); }
+  if (e.key === 't' || e.key === 'T') toggleTheater();
+  if (e.key === 'Escape' && theaterMode) toggleTheater();
+  const modeKeys = {'1':'bars','2':'wave','3':'radial','4':'lissajous','5':'terrain','6':'dna','7':'galaxy'};
+  if (modeKeys[e.key]) {
+    document.querySelector(`[data-mode="${modeKeys[e.key]}"]`)?.click();
+  }
 });
 </script>
 </body>
